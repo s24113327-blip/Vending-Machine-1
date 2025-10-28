@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>📚 BOOKSEEN - Bookshelf Vendo</title>
+<style>
+  :root{
+    --wood-1:#7a4a2a;
+    --wood-2:#c79a6d;
+    --paper:#fffdf6;
+    --accent:#b8860b;
+    --muted:#6b5846;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: "Poppins", "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(180deg,#f2e8dc 0%, #efdcc0 100%);
+    display:flex;
+    flex-direction: column; /* stack vertically */
+    align-items: center;    /* center horizontally */
+    justify-content: flex-start; /* allow vertical growth */
+    min-height:100vh;
+    padding:20px;
+  }
+
+  /* bookshelf background */
+  .shelf-wrap{
+    width:520px;
+    border-radius:12px;
+    background:linear-gradient(180deg,var(--wood-2), #e6c69b);
+    padding:14px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.15);
+    border:6px solid var(--wood-1);
+  }
+
+  /* header / sign */
+  .store-sign{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:10px;
+  }
+  .logo {
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .logo .title{
+    font-size:34px;
+    font-weight:800;
+    color:var(--wood-1);
+    letter-spacing:1px;
+  }
+  .logo .subtitle{
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  /* main card (machine) */
+  .machine{
+    background: linear-gradient(180deg,var(--paper), #fff8ec);
+    border-radius:10px;
+    padding:12px;
+    border:3px solid rgba(0,0,0,0.06);
+    box-shadow:0 6px 16px rgba(0,0,0,0.12);
+  }
+
+  .banner{
+    background:var(--wood-1);
+    color:var(--paper);
+    padding:6px 10px;
+    border-radius:8px;
+    text-align:center;
+    font-weight:700;
+    margin-bottom:8px;
+    font-size:13px;
+  }
+
+  .instructions{
+    background: #fff3d9;
+    border:1px solid rgba(0,0,0,0.06);
+    padding:8px;
+    border-radius:8px;
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:10px;
+  }
+
+  /* products: bookshelf style - 3 columns */
+  .products{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .product{
+    background: linear-gradient(180deg,#fffdf6,#fff6e8);
+    border-radius:8px;
+    border:2px solid rgba(0,0,0,0.06);
+    padding:8px;
+    text-align:center;
+    cursor:pointer;
+    transition:transform .15s, box-shadow .15s, border-color .15s;
+    position:relative;
+    user-select:none;
+  }
+  .product:hover{ transform:translateY(-4px); box-shadow:0 8px 18px rgba(0,0,0,0.08); }
+  .product.selected { border-color: var(--accent); box-shadow:0 10px 22px rgba(184,134,11,0.12); }
+  .product .emoji{ font-size:26px; display:block; margin-bottom:6px; }
+  .product .title{ font-weight:700; font-size:13px; color:var(--wood-1); min-height:34px; }
+  .product .price{ font-size:12px; color:var(--muted); margin-bottom:6px; }
+  .qty-btn{
+    background:var(--accent);
+    color:white;
+    border:none;
+    padding:6px 8px;
+    border-radius:6px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:12px;
+  }
+  .qty-btn:active{ transform:scale(.98) }
+
+  .qty-display{ margin-top:6px; font-size:12px; color:var(--muted); }
+
+  /* status & money area */
+  .status{ text-align:center; font-weight:700; color:var(--muted); margin:8px 0; font-size:13px; }
+  .money-row{ text-align:center; margin-bottom:8px; }
+  .money{ background:var(--paper); border:2px solid var(--wood-1); padding:6px 8px; margin:3px; border-radius:6px; cursor:pointer; font-weight:700; min-width:50px; }
+  .money:hover{ background:#fff7e6; }
+
+  .purchase-wrap{ text-align:center; margin:8px 0; }
+  .purchase-btn{ background:var(--wood-1); color:var(--paper); border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:800; font-size:14px; }
+  .purchase-btn:hover{ background:#5f361d }
+
+  /* tray & receipt */
+  .tray{
+    width:220px; height:46px; background:#e7e3de; margin:10px auto; border-radius:8px; border:2px solid rgba(0,0,0,0.06);
+    position:relative; overflow:hidden;
+  }
+  .coin,.bill{ position:absolute; animation:drop 0.9s forwards; font-size:18px; }
+  @keyframes drop{ 0% { transform:translateY(-60px) scale(.8); opacity:0 } 100% { transform:translateY(0) scale(1); opacity:1 } }
+
+  .receipt{
+    width:240px;
+    margin:10px auto 6px;
+    padding:10px 12px 14px;
+    background:linear-gradient(180deg,#fffefb,#fff6e9);
+    border-radius:6px;
+    border:1px dashed rgba(0,0,0,0.08);
+    box-shadow:0 8px 18px rgba(0,0,0,0.08);
+    font-family: "Courier New", monospace;
+    font-size:13px;
+    color:var(--muted);
+    opacity:0;
+    transform:translateY(-6px);
+    transition:opacity .35s, transform .35s;
+  }
+  .receipt.visible{ opacity:1; transform:translateY(0); }
+
+  .receipt .top-strip{
+    height:8px;
+    border-radius:4px 4px 0 0;
+    background:linear-gradient(90deg, #e6c69b, #b8860b);
+    margin:-10px -12px 8px;
+  }
+  .barcode{ display:flex; gap:2px; justify-content:center; align-items:flex-end; height:36px; margin:6px 0 2px; overflow:hidden; }
+  .bar{ background:#111; height:100%; }
+
+  .controls{ display:flex; gap:8px; justify-content:center; margin-top:6px; }
+  .small-btn{ background:transparent; border:2px solid rgba(0,0,0,0.06); padding:6px 8px; border-radius:6px; cursor:pointer; font-weight:700; }
+
+  /* shelf sign */
+  .shelf-decor{ display:flex; gap:8px; align-items:center; }
+  .shelf-decor .spine{ width:10px; height:28px; background:var(--accent); border-radius:2px; }
+
+  /* responsive */
+  @media (max-width:540px){
+    .shelf-wrap{ width:96%; padding:10px; }
+    .machine{ width:100% }
+    .logo .title{ font-size:28px }
+  }
+
+  /* copyright / footer */
+  .copyright{
+    margin-top:10px;
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+    background:transparent;
+    padding:8px 6px 0;
+    line-height:1.25;
+  }
+  .copyright .small{ font-size:11px; color:rgba(107,88,70,0.9) }
+</style>
+</head>
+<body>
+  <div class="shelf-wrap" aria-label="BOOKSEEN bookshelf vending">
+    <div class="store-sign">
+      <div class="logo">
+        <div class="title">BOOKSEEN</div>
+        <div class="subtitle">mini bookshelf vending</div>
+      </div>
+      <div class="shelf-decor" aria-hidden>
+        <div class="spine"></div><div class="spine" style="background:#8f5b3a"></div>
+      </div>
+    </div>
+
+    <div class="machine">
+      <div class="banner">Tiny Bookshop — Browse & Buy</div>
+      <div class="instructions">
+        Click a book to add it to your order (mouse only). Insert money or pay by card, then click <strong>Purchase</strong>.
+      </div>
+
+      <div class="products" id="products"></div>
+
+      <div class="status">Total: <span id="total">0</span> NTD &nbsp;|&nbsp; Inserted: <span id="inserted">0</span> NTD</div>
+
+      <div class="money-row" aria-label="Insert money">
+        <button class="money" onclick="insertMoney(10,'🪙')">10</button>
+        <button class="money" onclick="insertMoney(20,'🪙')">20</button>
+        <button class="money" onclick="insertMoney(50,'🪙')">50</button>
+        <button class="money" onclick="insertMoney(100,'💵')">100</button>
+        <button class="money" onclick="insertMoney(500,'💵')">500</button>
+        <button class="money" onclick="insertMoney(1000,'💸')">1000</button>
+        <button class="money" onclick="payWithCard()">💳 Card</button>
+      </div>
+
+      <div class="purchase-wrap">
+        <button class="purchase-btn" onclick="checkPurchase()">🛒 Purchase / Proceed</button>
+      </div>
+
+      <div class="tray" id="tray" title="Change tray"></div>
+
+      <div class="receipt" id="receipt" aria-live="polite"></div>
+
+      <div class="controls">
+        <button class="small-btn" onclick="repurchase()">🔄 Repurchase</button>
+        <button class="small-btn" onclick="clearChange()">🗑️ Clear Change</button>
+      </div>
+    </div> <!-- end .machine -->
+
+    <!-- copyright details -->
+    <footer class="copyright" role="contentinfo" aria-label="copyright information">
+      © 2025 BOOKSEEN — powered by Anmali Corporation<br>
+      Business Number: 1489762 | All rights reserved
+    </footer>
+  </div> <!-- end .shelf-wrap -->
+<script>
+/* ---------- BOOKS (products) ---------- */
+const products = [
+  { id:1, emoji:'📖', title:'The Little Prince', price:150, stock:4, selected:0 },
+  { id:2, emoji:'💡', title:'Atomic Habits', price:300, stock:3, selected:0 },
+  { id:3, emoji:'🔥', title:'Catching Fire', price:250, stock:4, selected:0 },
+  { id:4, emoji:'🧙', title:"Harry Potter and the Sorcerer's Stone", price:400, stock:2, selected:0 },
+  { id:5, emoji:'💼', title:'Rich Dad Poor Dad', price:350, stock:3, selected:0 },
+  { id:6, emoji:'💜', title:'Heartstopper', price:200, stock:5, selected:0 }
+];
+
+let inserted = 0;
+
+const productsDiv = document.getElementById('products');
+const totalSpan = document.getElementById('total');
+const insertedSpan = document.getElementById('inserted');
+const tray = document.getElementById('tray');
+const receiptDiv = document.getElementById('receipt');
+
+/* Render bookshelf - 3 across, 2 rows */
+function renderProducts(){
+  productsDiv.innerHTML = '';
+  products.forEach((p, i) => {
+    const box = document.createElement('div');
+    box.className = 'product' + (p.selected>0 ? ' selected' : '');
+    box.innerHTML = `
+      <div class="emoji">${p.emoji}</div>
+      <div class="title">${p.title}</div>
+      <div class="price">${p.price} NTD</div>
+      <button class="qty-btn" aria-label="Add ${p.title}">➕ Add</button>
+      <div class="qty-display">Qty: <span id="qty${i}">${p.selected}</span> &nbsp;|&nbsp; Stock: <span id="stock${i}">${p.stock}</span></div>
+    `;
+    box.querySelector('.qty-btn').onclick = () => addQty(i);
+    productsDiv.appendChild(box);
+  });
+  updateTotal();
+}
+
+/* Add one qty via mouse click */
+function addQty(i){
+  const p = products[i];
+  if(p.selected >= p.stock){
+    alert(`Sorry — only ${p.stock} in stock.`);
+    return;
+  }
+  p.selected++;
+  renderProducts();
+}
+
+/* update total display */
+function updateTotal(){
+  const total = products.reduce((s,p) => s + (p.selected || 0) * p.price, 0);
+  totalSpan.innerText = total;
+}
+
+/* insert money with animation */
+function insertMoney(amount, emoji){
+  inserted += amount;
+  insertedSpan.innerText = inserted;
+  const anim = document.createElement('div');
+  anim.className = 'insert';
+  anim.style.position = 'absolute';
+  anim.style.left = '50%';
+  anim.style.top = '8px';
+  anim.style.transform = 'translateX(-50%)';
+  anim.style.fontSize = '20px';
+  anim.style.pointerEvents = 'none';
+  anim.innerText = emoji || '💵';
+  document.querySelector('.machine').appendChild(anim);
+  setTimeout(()=> anim.remove(), 900);
+}
+
+/* pay with card */
+function payWithCard(){
+  const total = products.reduce((s,p)=>s + (p.selected||0)*p.price, 0);
+  if(total <= 0){ alert('Please select at least one book.'); return; }
+  inserted = total;
+  insertedSpan.innerText = inserted;
+}
+
+/* Purchase / proceed button */
+function checkPurchase(){
+  const total = products.reduce((s,p)=>s + (p.selected||0)*p.price, 0);
+  if(total <= 0){
+    alert('Please select at least one book.');
+    return;
+  }
+  if(inserted + 0.001 < total){
+    const need = Math.max(0, total - inserted);
+    alert(`❌ Not enough money! You need ${need} more NTD.`);
+    return;
+  }
+  const change = Math.round(inserted - total);
+  completePurchase(total, change);
+}
+
+/* Complete purchase */
+function completePurchase(total, change){
+  products.forEach(p => {
+    if(p.selected > 0){
+      p.stock = Math.max(0, p.stock - p.selected);
+    }
+  });
+  showChange(change);
+  showReceipt(total, change);
+  products.forEach(p => p.selected = 0);
+  inserted = 0;
+  insertedSpan.innerText = inserted;
+  renderProducts();
+  setTimeout(()=>{
+    document.getElementById('popup').style.display = 'flex';
+    setTimeout(()=> document.getElementById('popup').style.display = 'none', 2300);
+  }, 400);
+}
+
+/* Show change */
+function showChange(change){
+  tray.innerHTML = '';
+  if(change <= 0) return;
+  let delay = 0;
+  const denoms = [
+    {value:1000, emoji:'💸'},
+    {value:500, emoji:'💵'},
+    {value:100, emoji:'💵'},
+    {value:50, emoji:'🪙'},
+    {value:20, emoji:'🪙'},
+    {value:10, emoji:'🪙'}
+  ];
+  let remaining = change;
+  denoms.forEach(d => {
+    const count = Math.floor(remaining / d.value);
+    remaining %= d.value;
+    for(let i=0;i<count;i++){
+      const el = document.createElement('div');
+      el.className = d.value >= 100 ? 'bill' : 'coin';
+      el.innerText = d.emoji;
+      el.style.left = Math.max(4, Math.random()*180) + 'px';
+      el.style.animationDelay = (delay*0.08) + 's';
+      tray.appendChild(el);
+      delay++;
+    }
+  });
+}
+
+/* Show receipt */
+function showReceipt(total, change){
+  receiptDiv.classList.add('visible');
+  const date = new Date().toLocaleString();
+  const barcodeDiv = document.createElement('div');
+  barcodeDiv.className = 'barcode';
+  for(let i=0;i<36;i++){
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.width = (Math.random() > 0.6 ? 3 : 1) + 'px';
+    bar.style.height = (22 + Math.floor(Math.random()*12)) + '%';
+    barcodeDiv.appendChild(bar);
+  }
+  const barcodeNum = Math.floor(Math.random() * 1e11);
+  const itemsText = products
+    .filter(p => p.selected > 0)
+    .map(p => `${p.title} x${p.selected} = ${p.selected * p.price} NTD`)
+    .join('<br>') || '(none)';
+  receiptDiv.innerHTML = `
+    <div class="top-strip"></div>
+    <div style="font-weight:800; color:${'var(--wood-1)'}; margin-bottom:6px;">BOOKSEEN RECEIPT</div>
+    <div style="font-size:12px; color:var(--muted)">${date}</div>
+    <div style="margin:8px 0; text-align:left; line-height:1.35; font-size:13px;">${itemsText}</div>
+    <hr style="border:none; border-top:1px dashed rgba(0,0,0,0.08); margin:6px 0;" />
+    <div style="text-align:left; font-weight:700;">Total: ${total} NTD</div>
+    <div style="text-align:left; font-weight:700;">Change: ${change} NTD</div>
+  `;
+  receiptDiv.appendChild(barcodeDiv);
+  const num = document.createElement('div');
+  num.style.fontSize = '12px';
+  num.style.color = 'var(--muted)';
+  num.style.marginTop = '6px';
+  num.innerText = `Barcode: ${barcodeNum}`;
+  receiptDiv.appendChild(num);
+  receiptDiv.classList.add('visible');
+}
+
+/* Reset order */
+function repurchase(){
+  products.forEach(p => p.selected = 0);
+  inserted = 0;
+  insertedSpan.innerText = inserted;
+  updateTotal();
+  renderProducts();
+  receiptDiv.innerHTML = '';
+  receiptDiv.classList.remove('visible');
+}
+
+/* clear change tray */
+function clearChange(){
+  tray.innerHTML = '';
+}
+
+/* init */
+renderProducts();
+updateTotal();
+</script>
+
+<!-- thank you popup -->
+<div id="popup" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; pointer-events:none;">
+  <div style="pointer-events:auto; margin:auto; background:rgba(255,255,255,0.98); padding:16px 22px; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.2); font-weight:800; color:var(--wood-1)">
+    🎉 Thank you! <br><small style="font-weight:700">Enjoy your book — BOOKSEEN</small>
+  </div>
+</div>
+</body>
+</html>
